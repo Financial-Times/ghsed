@@ -15,6 +15,10 @@
     "@types/rx" "*"
     "@types/through" "*"
 
+"@types/lodash":
+  version "4.14.63"
+  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.63.tgz#5ac475f55bfdc62bc88c4239dbc482f2f3bead93"
+
 "@types/meow":
   version "3.6.2"
   resolved "https://registry.yarnpkg.com/@types/meow/-/meow-3.6.2.tgz#d13867f97d8b258200e14f59c6ed07f08b34280e"
@@ -336,7 +340,7 @@ load-json-file@^1.0.0:
     pinkie-promise "^2.0.0"
     strip-bom "^2.0.0"
 
-lodash@^4.3.0:
+lodash, lodash@^4.3.0:
   version "4.17.4"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.4.tgz#78203a4d1c328ae1d86dca6460e369b57f4055ae"
 
