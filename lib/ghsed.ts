@@ -5,16 +5,15 @@
  * 2017 Ændrew Rininsland
  */
 
-import * as GitHub from 'github-api';
+import GitHub = require('github-api');
+import sed = require('parse-sed');
 import axios from 'axios';
 import {prompt} from 'inquirer';
 import * as chalk from 'chalk';
 import * as diff from 'diff';
 import * as _ from 'lodash';
-import {
-  readFileSync
-} from 'fs';
 
+import {authGitHub, readToken, ConfigObject} from './auth';
 
 /**
  * Main function call
@@ -24,7 +23,10 @@ import {
  * @param  {ConfigObject} config  Configuration object via CLI flags
  * @return {Promise<PRResults>}   Results of workflow
  */
-export default async ([find, replace]: string[], config: ConfigObject) => {
+export default async (input: string[], config: ConfigObject) => {
+  const target = input.length === 2 ? input[1] : input[0];
+  const instructions = input.length === 2 ? input[0] : input[1];
+
   const githubTokenFile = readToken(); // Get token if possible
   const gh = authGitHub(config, githubTokenFile); // Auth with either config or token
 
@@ -43,7 +45,7 @@ export default async ([find, replace]: string[], config: ConfigObject) => {
       });
 
     // Query user about whether to find/replace and PR file
-    const outcomes = await processResults(results.items, find, replace);
+    const outcomes = await processResults(results.data.items, find, replace);
 
     // Create a hash of file matches keyed by repo long name
     const groupedByRepo: RepoGroup = outcomes.reduce((collection: RepoGroup, item: GitHubSearchItem) => {
@@ -59,11 +61,12 @@ export default async ([find, replace]: string[], config: ConfigObject) => {
 
     // For each repo, make replacements and PR
     Object.entries(groupedByRepo).reduce(async (queue, [repoName, replacements]) => {
-      const repo = gh.getRepo(...repoName.split('/'));
+      const [repoShortName, repoOwner] = repoName.split('/', 2);
+      const repo = gh.getRepo(repoOwner, repoShortName);
 
       try {
         const collection = await queue;
-        const details = repo.getDetails();
+        const details = await repo.getDetails();
 
         // Ensure user has write access
         // @TODO verify isCollaborator only is true if user has write access
@@ -71,7 +74,7 @@ export default async ([find, replace]: string[], config: ConfigObject) => {
           // Create new branch on current repo from the default branch
           // N.b., GitHub code search only works on the default branch
           const newBranch = `ghsed-${Date.now()}`;
-          repo.createBranch(details.default_branch, newBranch);
+          repo.createBranch(details.data.default_branch, newBranch);
 
           // Replace all the blobs!
           const replacedBlobs = await replaceBlobs(repo, replacements, find, replace);
@@ -94,7 +97,7 @@ export default async ([find, replace]: string[], config: ConfigObject) => {
             title: `Mass find and replace via ghsed`,
             body: `Replaces all instances of \`${find}\` with \`${replace}\``,
             head: newBranch,
-            base: details.default_branch,
+            base: details.data.default_branch,
           });
         } else {
           // @TODO Ask user if he/she wants to fork repo; use that repo instead
@@ -189,8 +192,8 @@ async function queryMatches(match: GithubTextMatches, find: string, replace: str
  * @return {Array}                                Array of updated file blobs
  */
 async function replaceBlobs(repo: GitHub.Repository, replacements: Array<GitHubSearchItem>, find: string, replace: string) {
-  const filenames = _.uniqBy(replacements, d => d.repository.path);
-  const blobs = await Promise.all(filenames.map(repo.getSha));
+  const filenames = _.uniqBy(replacements, d => d.repository.path).map(d => d.repository.path);
+  const blobs = await Promise.all(filenames.map(filename => repo.getSha(undefined, filename)));
   return blobs.map((file: any) => {
     file.replaced = file.content.replace(new RegExp(find, 'ig'), replace);
     return file;
@@ -224,56 +227,46 @@ function buildQuery(config: ConfigObject, find: string) {
   ].filter(i => i).join(' ');
 }
 
-/**
- * Read GitHub token from file or return false
- * @return {string|false} Token string or false
- */
-function readToken() {
-  try {
-    return readFileSync(`${process.env.HOME}/.githubtoken`, {encoding: 'utf-8'});
-  } catch (e) {
-    return false;
-  }
+export function splitMultipleSedInstructions(instructionSet: string) {
+  return instructionSet; // TODO write way to split instructions
 }
 
 /**
- * Instantiate github-api parent class and set authentication
- * @param  {ConfigObject}   config          Config object from CLI flags
- * @param  {string|boolean} githubTokenFile Token from file (or false)
- * @throws {Error}                          ...When no authentication method available
- * @return {GitHub}                         github-api GitHub class
+ * Parse sed language instructions into component parts
+ * The regex used only suffices for single-instruction sed commands!
+ * @TODO Port sed.js so it can be used to parse the sed instruction set.
+ *
+ * @param  {string} instruction Sed instruction
+ * @return {SedInstruction}     Parsed sed instruction object
  */
-function authGitHub(config: ConfigObject, githubTokenFile: string|boolean) {
-  if (process.env.GITHUB_TOKEN || githubTokenFile) {
-    return new GitHub({
-      token: githubTokenFile,
-    });
-  } else if (config.token) {
-    return new GitHub({
-      token: config.token,
-    });
-  } else if (config.username && config.password) {
-    return new GitHub({
-      username: config.username,
-      password: config.password,
-    });
-  } else {
-    throw new Error('You need to either specify username/password or provide an API token.');
+export function parseSedInstructions(instructions: string[]) {
+  return instructions.map(instruction => {
+    const [op, find, replace] = instruction.split(/^([^\/]+)\/(.*)\/(.*)\/\w*$/).slice(1, -1);
+    return {
+      op,
+      find,
+      replace,
+    };
+  });
+}
+
+/**
+ * Parse GitHub username/org, repo and filename into object
+ * @param  {string} targetString A GitHub fileglob in format "owner/repo/file"
+ * @return {TargetObject}        A parsed target object
+ */
+export function parseTargets(targetString: string) {
+  const [owner, repo, file = '*'] = targetString.split('/');
+
+  if ((!owner && repo) || owner === '*') {
+    throw new TypeError('An organization or GitHub username must be specified!');
   }
-}
 
-interface ConfigObject extends ConfigObjectBase {
-  username: string;
-  password: string;
-}
-
-interface ConfigObject extends ConfigObjectBase {
-  token: string;
-}
-
-interface ConfigObjectBase {
-  org?: string;
-  repos?: string;
+  return {
+    owner,
+    repo,
+    file
+  };
 }
 
 interface GitHubSearchItem {

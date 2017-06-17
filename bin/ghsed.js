@@ -10,29 +10,34 @@ const ghsed = require('../lib/index').default;
 const cli = meow(`
   ${chalk.bold('ghsed makes it easy to change strings across multiple repos')}
   - Supply a sed-style substitution and it will open pull requests replacing the relevant strings
-  - You need to either include username and password, or an appropriate access token
-  - If you specify the --org flag but not --repos, it will search *every repo in the org*
+  - You must supply username and password, or an appropriate access token; see ${chalk.underline.bold('Credentials')}.
 
   Usage
-    $ ghsed <credentials> <flags> <search> <replace> <glob>
+    $ ghsed <credentials> <instructions> <target(s)>
 
   Options
     ${chalk.underline.bold('Credentials')}
-    --username, -u  GitHub username
-    --password, -p  GitHub password
-    --token,    -t  GitHub token
+    --username, -u           GitHub username
+    --password, -p           GitHub password
+    --token,    -t           GitHub token
+    ${chalk.bold('Note:')} You can also create a file at $HOME/.githubtoken containing a token to use.
 
-    ${chalk.underline.bold('Flags')}
-    --org,      -o  GitHub org
-    --repos     -r  GitHub repos (comma-separated)
+    ${chalk.underline.bold('Instructions')}
+    --expr,     -e           Sed instruction. Can supply multiple -e flags
+    --inplace,  -i [branch]  Edit "in-place": commit directly to branch.
+                             Supply [branch] to push to a new branch instead of repo default
 
+    ${chalk.underline.bold('Targets')}
+    <user-or-org>/*          Apply changes to all repos for a given user or organisation
+    <user-or-org>/<repo>     Apply changes to only <repo>
+    <user-or-org>/*/<file>   Apply changes to <file> on all repos for supplied user/org
 `, {
   alias: {
     u: 'username',
     p: 'password',
     t: 'token',
-    o: 'org',
-    r: 'repos'
+    e: 'expr',
+    i: 'inplace'
   }
 });
 
