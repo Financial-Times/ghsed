@@ -5,7 +5,7 @@ require('ts-node/register');
 
 const chalk = require('chalk');
 const meow = require('meow');
-const ghsed = require('../lib/index').default;
+const ghsed = require('../lib/ghsed').default;
 
 const cli = meow(`
   ${chalk.bold('ghsed makes it easy to change strings across multiple repos')}
@@ -41,4 +41,13 @@ const cli = meow(`
   }
 });
 
-ghsed(cli.input, cli.flags);
+ghsed(cli.flags, cli.input)
+.then(output => {
+  // do something with output
+  process.exit(0);
+})
+.catch(e => {
+  // console.error(e.message);
+  console.error(e);
+  process.exit(1);
+});

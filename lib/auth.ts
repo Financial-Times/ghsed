@@ -45,17 +45,15 @@ export function authGitHub(config: ConfigObject, githubTokenFile: string|boolean
 }
 
 export interface ConfigObject extends ConfigObjectBase {
-  username: string;
-  password: string;
+  username?: string;
+  password?: string;
 }
 
 export interface ConfigObject extends ConfigObjectBase {
-  token: string;
+  token?: string;
 }
 
 interface ConfigObjectBase {
-  org?: string;
-  repos?: string;
   expr?: string|string[];
   inplace?: string;
 }
