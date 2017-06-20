@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mochista test/*.spec.ts --compilers ts:ts-node/register",
-    "tdd": "npm run test -- --watch"
+    "test": "mocha --compilers ts:ts-node/register test/*.spec.ts",
+    "tdd": "npm test -- --watch",
+    "cover": "nyc npm test"
   },
   "keywords": [],
   "author": "",
@@ -38,10 +39,20 @@
     "@types/sinon": "^2.3.1",
     "@types/sinon-chai": "^2.7.28",
     "chai": "^4.0.2",
-    "mochista": "^0.12.2",
+    "mocha": "^3.4.2",
     "nyc": "^11.0.2",
     "sinon": "^2.3.4",
     "sinon-chai": "^2.11.0",
     "typescript": "^2.2.2"
+  },
+  "nyc": {
+    "extension": [
+      ".ts"
+    ],
+    "reporter": [
+      "lcov",
+      "html",
+      "text"
+    ]
   }
 }

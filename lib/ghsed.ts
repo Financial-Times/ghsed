@@ -6,20 +6,11 @@
  */
 
 import GitHub = require('github-api');
-import axios from 'axios';
-import {prompt} from 'inquirer';
-import {dirSync as createDir} from 'tmp';
-import * as chalk from 'chalk';
-import * as diff from 'diff';
-import * as _ from 'lodash';
-import * as git from 'git';
-
 import {
   authGitHub,
   readToken,
   ConfigObject
 } from './auth';
-
 import {
   parseSedInstructions,
   buildQueries,
@@ -28,10 +19,10 @@ import {
   GitHubSearchItem,
 } from './search';
 
-import {
-  processResults,
-  makeReplacements,
-} from './replace';
+// import {
+//   processResults,
+//   makeReplacements,
+// } from './replace';
 
 /**
  * Main function call
@@ -45,7 +36,7 @@ export default async function ghSed(config: ConfigObject, input?: string[]) {
   // Parse instructions and targets
   const targetInput = input.length === 2 ? input[1] : input[0]; // If two input values, assume expr + target
   const instructionsInput = input.length === 2 ? input[0] : undefined; // If one input value, assume just target
-  const configExpr = Array.isArray(config.expr) ? config.expr : Array.from(config.expr); // Ensure -e is an array
+  const configExpr = Array.isArray(config.expr) ? config.expr : Array.from(config.expr || []); // Ensure -e is an array
 
   if (!targetInput || (!instructionsInput && !configExpr)) {
     throw new Error('You need to include both instructions and targets');
@@ -84,14 +75,14 @@ export default async function ghSed(config: ConfigObject, input?: string[]) {
     }, {});
 
     // Query user about whether to find/replace and PR file
-    const outcomes = await processResults({
-      results, targets, instructions
-    });
+    // const outcomes = await processResults({
+    //   results, targets, instructions
+    // });
 
     // Get user's login name to verify he/she is a contributor later on
     const username = (await gh.getUser()).login;
 
-    return makeReplacements(groupedByRepo);
+    // return makeReplacements(groupedByRepo);
   } catch (e) {
     console.error(e);
   }

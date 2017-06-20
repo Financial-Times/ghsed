@@ -25,7 +25,7 @@ export function readToken() {
  * @throws {Error}                          ...When no authentication method available
  * @return {GitHub}                         github-api GitHub class
  */
-export function authGitHub(config: ConfigObject, githubTokenFile: string|boolean) {
+export function authGitHub(config?: ConfigObject, githubTokenFile?: string|boolean) {
   if (process.env.GITHUB_TOKEN || githubTokenFile) {
     return new GitHub({
       token: githubTokenFile,
