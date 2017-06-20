@@ -37,12 +37,14 @@ export function buildQueries(targets: GHTarget, sedExpressions: sed.Expression[]
  * @param  {string} instruction Sed instruction
  * @return {SedInstruction}     Parsed sed instruction objects
  */
-export function parseSedInstructions(instructions: string[]) {
+export function parseSedInstructions(instructions: string[]): sed.Expression[] {
   try {
     return instructions.map(sed);
   } catch (e) {
     if (e.message === 'Cannot read property \'slice\' of null') {
       throw new Error('One or more of your sed expressions are invalid. Did you forget a slash?');
+    } else {
+      throw e;
     }
   }
 
@@ -77,32 +79,4 @@ export interface GHTarget {
   owner: string;
   repo: string;
   file: string;
-}
-
-export interface GithubTextMatches {
-  object_url: string;
-  object_type: string;
-  property: string;
-  fragment: string;
-  matches: Array<{
-    text: string;
-    indices: Array<number>;
-  }>;
-  replace?: boolean;
-}
-
-export interface GitHubSearchItem {
-  name: string;
-  path: string;
-  sha: string;
-  url: string;
-  git_url: string;
-  html_url: string;
-  repository: any;
-  text_matches: Array<GithubTextMatches>;
-  text_replaces?: Array<GithubTextMatches>;
-}
-
-export interface RepoGroup {
-  [key: string]: Array<GitHubSearchItem>;
 }

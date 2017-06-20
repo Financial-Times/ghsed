@@ -15,14 +15,14 @@ import {
   parseSedInstructions,
   buildQueries,
   parseTargets,
-  RepoGroup,
-  GitHubSearchItem,
 } from './search';
 
-// import {
-//   processResults,
-//   makeReplacements,
-// } from './replace';
+import {
+  processResults,
+  queryMatches,
+  RepoGroup,
+  GitHubSearchItem,
+} from './replace';
 
 /**
  * Main function call
@@ -74,19 +74,10 @@ export default async function ghSed(config: ConfigObject, input?: string[]) {
       return collection;
     }, {});
 
-    // Query user about whether to find/replace and PR file
-    // const outcomes = await processResults({
-    //   results, targets, instructions
-    // });
-
-    // Get user's login name to verify he/she is a contributor later on
-    const username = (await gh.getUser()).login;
-
-    // return makeReplacements(groupedByRepo);
+    // Do get blobs and replace relevant strings
+    const processed = await processResults(groupedByRepo, targets, instructions, gh);
+    return await queryMatches(processed);
   } catch (e) {
     console.error(e);
   }
-  // const repo = gh.getRepo(repoUser, repoName);
-  // const blob: string = (await repo.getBlob(item.sha)).data;
-  // const matches = blob.match(new RegExp(`^.*(${find}).*$`, 'gmi'));
 }

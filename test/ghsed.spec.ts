@@ -10,12 +10,12 @@ import * as sinonChai from 'sinon-chai';
 import {default as ghsed} from '../lib/ghsed';
 import * as auth from '../lib/auth';
 import * as search from '../lib/search';
-import * as replace from '../lib/replace';
+// import * as replace from '../lib/replace';
 
 chai.use(sinonChai);
 const should = chai.should();
 
-xdescribe('default', () => {
+describe('default', () => {
   let parseSedInstructionsSpy: sinon.SinonSpy;
   let parseTargetsSpy: sinon.SinonSpy;
 

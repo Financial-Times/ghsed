@@ -19,6 +19,7 @@ import {
 chai.use(sinonChai);
 const should = chai.should();
 
+
 describe('lib/auth.ts', () => {
   describe('readToken()', () => {
     let readFileSyncStub: sinon.SinonStub;
@@ -53,7 +54,7 @@ describe('lib/auth.ts', () => {
     });
   });
 
-  xdescribe('authGitHub()', () => {
+  describe('authGitHub()', () => {
     let GitHubStub: sinon.SinonStub;
     const GitHubTokenEnvVar = process.env.GITHUB_TOKEN;
 
@@ -70,23 +71,30 @@ describe('lib/auth.ts', () => {
     it('auths using $GITHUB_TOKEN env var', () => {
       const result = authGitHub();
       GitHubStub.should.be.calledWithNew;
+      result.should.be.a('Github');
     });
 
     it('auths using GitHub token arg', () => {
       const result = authGitHub({}, '<TOKEN>');
+      GitHubStub.should.be.calledWithNew;
+      result.should.be.a('Github');
     });
 
     it('auths using GitHub token config value', () => {
       const result = authGitHub({token: '<TOKEN>'});
+      GitHubStub.should.be.calledWithNew;
+      result.should.be.a('Github');
     });
 
     it('auths using username/pass config values', () => {
       const result = authGitHub({username: '<USERNAME>', password: '<PASSWORD>'});
+      GitHubStub.should.be.calledWithNew;
+      result.should.be.a('Github');
     });
 
     it('throws if no authentication mechanism supplied', () => {
       process.env.GITHUB_TOKEN = undefined;
-      const result = authGitHub();
+      should.Throw(() => authGitHub(), TypeError);
     });
   });
 });

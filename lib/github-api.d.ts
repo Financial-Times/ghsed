@@ -499,7 +499,7 @@ declare module 'github-api' {
        * @param {Requestable.callback} cb - will receive the blob from the API
        * @return {axios.AxiosPromise} - the promise for the http request
        */
-      getBlob(sha: string, cb: Requestable.callback): axios.AxiosPromise;
+      getBlob(sha: string, cb?: Requestable.callback): axios.AxiosPromise;
 
       /**
        * Get a single branch

@@ -5,7 +5,7 @@ require('ts-node/register');
 
 const chalk = require('chalk');
 const meow = require('meow');
-const ghsed = require('../lib/ghsed').default;
+const ghsed = require('../lib/ghsed');
 
 const cli = meow(`
   ${chalk.bold('ghsed makes it easy to change strings across multiple repos')}
@@ -41,13 +41,19 @@ const cli = meow(`
   }
 });
 
-ghsed(cli.flags, cli.input)
-.then(output => {
-  // do something with output
+ghsed.default(cli.flags, cli.input)
+.then(processed => {
+  if (cli.flags.inplace) {
+    const branch = cli.flags.inplace || 'master';
+    // return ghsed.commitToBranch(branch, processed);
+  } else {
+    // return ghsed.makePullRequests(processed);
+  }
+})
+.then(results => {
   process.exit(0);
 })
 .catch(e => {
-  // console.error(e.message);
   console.error(e);
   process.exit(1);
 });

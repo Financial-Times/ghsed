@@ -30,7 +30,7 @@
     "parse-sed": "github:aendrew/parse-sed",
     "shelljs": "^0.7.8",
     "tmp": "0.0.31",
-    "ts-node": "^3.0.2"
+    "ts-node": "^2.1.2"
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",
@@ -43,7 +43,7 @@
     "nyc": "^11.0.2",
     "sinon": "^2.3.4",
     "sinon-chai": "^2.11.0",
-    "typescript": "^2.2.2"
+    "typescript": "^2.3.4"
   },
   "nyc": {
     "extension": [
