@@ -78,67 +78,103 @@ export default async function ghSed(config: ConfigObject, input?: string[]) {
   }
 }
 
+async function createOrGetBranch(branchName: string, repo: GitHub.Repository) {
+  try {
+    const {data: branch} = await repo.getBranch(branchName);
+    return branch;
+  } catch (e) {
+    if (e.response.status === 404) {
+      try {
+        const defaultBranch = await getDefaultBranch(repo);
+        return (await repo.createBranch(defaultBranch, branchName)).data;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }
+}
+
 // @TODO this should probably be broken into a few functions
 async function commitToBranch(answers: ReplaceAnswers[], gh: GitHub, inPlace: boolean = false) {
   return answers.reduce(async (queue, current) => {
-    const collection = await queue;
+    try {
+      const collection = await queue;
 
-    // Bail if trying to commit directly to master branch and not using "in-place" mode
-    if (current.branch === 'master' && !inPlace) return collection;
+      // Bail if trying to commit directly to master branch and not using "in-place" mode
+      if (current.branch === 'master' && !inPlace) return collection;
 
-    const [repoOwner, repoName] = current.repo.split('/');
-    const repo = gh.getRepo(repoOwner, repoName);
-    const head = (await createOrGetBranch(current.branch, repo)).commit.head;
-    const tree = (await repo.getTree(head)).data;
-    const blobs = (await Promise.all(current.replacements.map(async file => {
-      if (file.confirmed) {
-        const blob = (await repo.createBlob(file.replaced)).data;
-        return {
-          path: file.path,
-          mode: '100644', // @TODO Is this correct?!
-          type: 'blob',
-          sha: blob.sha,
-        };
-      } else {
-        return undefined;
-      }
-    }))).filter(i => i);
-    const updatedTree = (await repo.createTree(blobs, tree.sha)).data;
-    const commit = (await repo.commit(head.sha, updatedTree.sha, `ghsed changes\n${process.argv.join(' ')}`)).data;
+      const [repoOwner, repoName] = current.repo.split('/');
+      const repo = gh.getRepo(repoOwner, repoName);
+      const currentBranch = (await createOrGetBranch(current.branch, repo));
 
-    return collection.concat({
-      repo,
-      branch: current.branch,
-      sha: commit.sha,
-    });
+      // currentBranch will have .commit if existent; .object if new
+      const head = currentBranch.commit ? currentBranch.commit.sha : currentBranch.object.sha;
+      const tree = (await repo.getTree(head)).data;
+      const blobs = (await Promise.all(current.replacements.map(async file => {
+        if (file.confirmed) {
+          const blob = (await repo.createBlob(file.replaced)).data;
+          return {
+            path: file.path,
+            mode: '100644', // @TODO Is this correct?!
+            type: 'blob',
+            sha: blob.sha,
+          };
+        } else {
+          return undefined;
+        }
+      }))).filter(i => i);
+
+      const updatedTree = (await repo.createTree(blobs, tree.sha)).data;
+      const commit = (await repo.commit(head, updatedTree.sha, `ghsed changes:\n$ ghsed ${process.argv.slice(2).join(' ')}`)).data;
+      const ref = (await repo.updateHead(`heads/${currentBranch.name}`, commit.sha, false));
+
+      return collection.concat({
+        repo,
+        owner: repoOwner,
+        branch: current.branch,
+        sha: commit.sha,
+      });
+    } catch (e) {
+      console.error(e); // Throw and quit. @TODO handle more gracefully.
+      console.error(e.response.data.errors);
+      process.exit(1);
+    }
   }, Promise.resolve<Array<UpdatedBranch>>([]));
 }
 
-async function createOrGetBranch(branchName: string, repo: GitHub.Repository) {
-  const branch = (await repo.getBranch(branchName)).data;
-  if (!branch.name) {
-    return (await repo.createBranch(branchName)).data;
-  } else {
-    return branch;
+async function getDefaultBranch(repo: GitHub.Repository) {
+  try {
+    const {data} = await repo.getDetails();
+    return data.default_branch;
+  } catch (e) {
+    return 'master';
   }
 }
 
 async function makePullRequests(prs: UpdatedBranch[], gh: GitHub) {
-  return await prs.reduce(async (q, c) => {
-    const collection = await q;
-    const defaultBranch = (await c.repo.getDetails()).data.default_branch || 'master';
-    const PRData = await c.repo.createPullRequest({
-      title: `Replacements via ghsed`,
-      body: `Command invoked ${new Date().toISOString()} with the following arguments:\n${process.argv.join(' ')}`,
-      head: c.branch,
-      base: defaultBranch,
-    });
-    return collection.concat(PRData.data);
-  }, Promise.resolve([]));
+  try {
+    return await prs.reduce(async (q, c) => {
+      const collection = await q;
+      const {owner, branch} = c;
+      const defaultBranch = await getDefaultBranch(c.repo);
+      const PRData = await c.repo.createPullRequest({
+        title: `Replacements via ghsed`,
+        body: `Command invoked ${new Date().toISOString()} with the following arguments:\n\`\`\`bash\n$ ghsed ${process.argv.slice(2).join(' ')}\n\`\`\``,
+        head: `${owner}:${branch}`,
+        base: defaultBranch,
+      });
+      return collection.concat(PRData.data);
+    }, Promise.resolve([]));
+  } catch (e) {
+    console.error(e);
+    console.error(e.response.data.errors);
+    process.exit(1);
+  }
 }
 
 interface UpdatedBranch {
   repo: GitHub.Repository;
+  owner: string;
   branch: string;
   sha: string;
 }

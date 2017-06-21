@@ -26,8 +26,7 @@ export function buildQueries(targets: GHTarget, sedExpressions: sed.Expression[]
   const commands = sedExpressions.map(expr => expr.commands);
 
   return commands.map(command => [
-    ...(repo && repo !== '*' ? repo.split(/,\s?/).map(d => `repo:${d}`) : []),
-    `user:${owner}`,
+    ...(repo && repo !== '*' ? repo.split(/,\s?/).map(d => `repo:${owner}/${d}`) : [`user:${owner}`]),
     ...command.map(c => c.string1),
   ].filter(i => i).join(' '));
 }

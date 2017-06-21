@@ -628,7 +628,7 @@ declare module 'github-api' {
        * @param {Requestable.callback} cb - will receive the updated ref back
        * @return {axios.AxiosPromise} - the promise for the http request
        */
-      updateHead(ref: string, commitSHA: string, force: boolean, cb: Requestable.callback): axios.AxiosPromise;
+      updateHead(ref: string, commitSHA: string, force: boolean, cb?: Requestable.callback): axios.AxiosPromise;
 
       /**
        * Get information about the repository
