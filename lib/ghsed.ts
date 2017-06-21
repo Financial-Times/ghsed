@@ -22,16 +22,9 @@ import {
   queryMatches,
   RepoGroup,
   GitHubSearchItem,
+  ReplaceAnswers,
 } from './replace';
 
-/**
- * Main function call
- * @param  {array}       input    Values from CLI
- * @property  {string}    find     Value to search for
- * @property  {string}    replace  Value to replace `search` with
- * @param  {ConfigObject} config  Configuration object via CLI flags
- * @return {Promise<PRResults>}   Results of workflow
- */
 export default async function ghSed(config: ConfigObject, input?: string[]) {
   // Parse instructions and targets
   const targetInput = input.length === 2 ? input[1] : input[0]; // If two input values, assume expr + target
@@ -53,9 +46,6 @@ export default async function ghSed(config: ConfigObject, input?: string[]) {
   const queries = buildQueries(targets, instructions);
 
   try {
-    // Create search for code, returning text-match results
-    // Apparently only ~two fragments per file are returned!
-    // Because of this, we clone repo to the temp directory on match.
     const results = await Promise.all(
       queries.map(async query => (await gh.search({})
         .forCode({
@@ -76,8 +66,79 @@ export default async function ghSed(config: ConfigObject, input?: string[]) {
 
     // Do get blobs and replace relevant strings
     const processed = await processResults(groupedByRepo, targets, instructions, gh);
-    return await queryMatches(processed);
+    const answers = await queryMatches(processed);
+    if (config.inplace) {
+      return commitToBranch(answers, gh);
+    } else {
+      const branchesAndShas = await commitToBranch(answers, gh);
+      return await makePullRequests(branchesAndShas, gh);
+    }
   } catch (e) {
     console.error(e);
   }
+}
+
+// @TODO this should probably be broken into a few functions
+async function commitToBranch(answers: ReplaceAnswers[], gh: GitHub, inPlace: boolean = false) {
+  return answers.reduce(async (queue, current) => {
+    const collection = await queue;
+
+    // Bail if trying to commit directly to master branch and not using "in-place" mode
+    if (current.branch === 'master' && !inPlace) return collection;
+
+    const [repoOwner, repoName] = current.repo.split('/');
+    const repo = gh.getRepo(repoOwner, repoName);
+    const head = (await createOrGetBranch(current.branch, repo)).commit.head;
+    const tree = (await repo.getTree(head)).data;
+    const blobs = (await Promise.all(current.replacements.map(async file => {
+      if (file.confirmed) {
+        const blob = (await repo.createBlob(file.replaced)).data;
+        return {
+          path: file.path,
+          mode: '100644', // @TODO Is this correct?!
+          type: 'blob',
+          sha: blob.sha,
+        };
+      } else {
+        return undefined;
+      }
+    }))).filter(i => i);
+    const updatedTree = (await repo.createTree(blobs, tree.sha)).data;
+    const commit = (await repo.commit(head.sha, updatedTree.sha, `ghsed changes\n${process.argv.join(' ')}`)).data;
+
+    return collection.concat({
+      repo,
+      branch: current.branch,
+      sha: commit.sha,
+    });
+  }, Promise.resolve<Array<UpdatedBranch>>([]));
+}
+
+async function createOrGetBranch(branchName: string, repo: GitHub.Repository) {
+  const branch = (await repo.getBranch(branchName)).data;
+  if (!branch.name) {
+    return (await repo.createBranch(branchName)).data;
+  } else {
+    return branch;
+  }
+}
+
+async function makePullRequests(prs: UpdatedBranch[], gh: GitHub) {
+  return await prs.reduce(async (q, c) => {
+    const collection = await q;
+    const defaultBranch = (await c.repo.getDetails()).data.default_branch || 'master';
+    const PRData = await c.repo.createPullRequest({
+      title: `Replacements via ghsed`,
+      body: `Command invoked ${new Date().toISOString()} with the following arguments:\n${process.argv.join(' ')}`,
+      head: c.branch,
+      base: defaultBranch,
+    });
+    return collection.concat(PRData.data);
+  }, Promise.resolve([]));
+}
+
+interface UpdatedBranch {
+  repo: GitHub.Repository;
+  branch: string;
+  sha: string;
 }

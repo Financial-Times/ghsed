@@ -42,14 +42,6 @@ const cli = meow(`
 });
 
 ghsed.default(cli.flags, cli.input)
-.then(processed => {
-  if (cli.flags.inplace) {
-    const branch = cli.flags.inplace || 'master';
-    // return ghsed.commitToBranch(branch, processed);
-  } else {
-    // return ghsed.makePullRequests(processed);
-  }
-})
 .then(results => {
   process.exit(0);
 })

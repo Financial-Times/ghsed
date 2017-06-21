@@ -508,7 +508,7 @@ declare module 'github-api' {
        * @param {Requestable.callback} cb - will receive the branch from the API
        * @returns {axios.AxiosPromise} - the promise for the http request
        */
-      getBranch(branch: string, cb: Requestable.callback): axios.AxiosPromise;
+      getBranch(branch: string, cb?: Requestable.callback): axios.AxiosPromise;
 
       /**
        * Get a commit from the repository
@@ -568,7 +568,7 @@ declare module 'github-api' {
        * @param {Requestable.callback} cb - will receive the callback data
        * @return {axios.AxiosPromise} - the promise for the http request
        */
-      getTree(treeSHA: string, cb: Requestable.callback): axios.AxiosPromise;
+      getTree(treeSHA: string, cb?: Requestable.callback): axios.AxiosPromise;
 
       /**
        * Create a blob
@@ -577,7 +577,7 @@ declare module 'github-api' {
        * @param {Requestable.callback} cb - will receive the details of the created blob
        * @return {axios.AxiosPromise} - the promise for the http request
        */
-      createBlob(content: (string | Buffer | Blob), cb: Requestable.callback): axios.AxiosPromise;
+      createBlob(content: (string | Buffer | Blob), cb?: Requestable.callback): axios.AxiosPromise;
 
       /**
        * Get the object that represents the provided content
@@ -606,7 +606,7 @@ declare module 'github-api' {
        * @param {Requestable.callback} cb - will receive the new tree that is created
        * @return {axios.AxiosPromise} - the promise for the http request
        */
-      createTree(tree: Object, baseSHA: string, cb: Requestable.callback): axios.AxiosPromise;
+      createTree(tree: Object, baseSHA: string, cb?: Requestable.callback): axios.AxiosPromise;
 
       /**
        * Add a commit to the repository
@@ -617,7 +617,7 @@ declare module 'github-api' {
        * @param {Requestable.callback} cb - will receive the commit that is created
        * @return {axios.AxiosPromise} - the promise for the http request
        */
-      commit(parent: string, tree: string, message: string, cb: Requestable.callback): axios.AxiosPromise;
+      commit(parent: string, tree: string, message: string, cb?: Requestable.callback): axios.AxiosPromise;
 
       /**
        * Update a ref
