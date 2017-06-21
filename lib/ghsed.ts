@@ -106,10 +106,10 @@ async function commitToBranch(answers: ReplaceAnswers[], gh: GitHub, inPlace: bo
       const [repoOwner, repoName] = current.repo.split('/');
       const repo = gh.getRepo(repoOwner, repoName);
       const currentBranch = (await createOrGetBranch(current.branch, repo));
-
+      const headRef = currentBranch.name ? `heads/${currentBranch.name}` : currentBranch.ref.split('/').slice(1).join('/');
       // currentBranch will have .commit if existent; .object if new
-      const head = currentBranch.commit ? currentBranch.commit.sha : currentBranch.object.sha;
-      const tree = (await repo.getTree(head)).data;
+      const headSha = currentBranch.commit ? currentBranch.commit.sha : currentBranch.object.sha;
+      const tree = (await repo.getTree(headSha)).data;
       const blobs = (await Promise.all(current.replacements.map(async file => {
         if (file.confirmed) {
           const blob = (await repo.createBlob(file.replaced)).data;
@@ -125,8 +125,8 @@ async function commitToBranch(answers: ReplaceAnswers[], gh: GitHub, inPlace: bo
       }))).filter(i => i);
 
       const updatedTree = (await repo.createTree(blobs, tree.sha)).data;
-      const commit = (await repo.commit(head, updatedTree.sha, `ghsed changes:\n$ ghsed ${process.argv.slice(2).join(' ')}`)).data;
-      const ref = (await repo.updateHead(`heads/${currentBranch.name}`, commit.sha, false));
+      const commit = (await repo.commit(headSha, updatedTree.sha, `ghsed changes:\n$ ghsed ${process.argv.slice(2).join(' ')}`)).data;
+      const ref = (await repo.updateHead(headRef, commit.sha, false));
 
       return collection.concat({
         repo,

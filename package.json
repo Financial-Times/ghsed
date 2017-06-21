@@ -27,7 +27,7 @@
     "lodash": "^4.17.4",
     "meow": "^3.7.0",
     "node-git": "0.0.0",
-    "parse-sed": "github:aendrew/parse-sed",
+    "parse-sed": "github:aendrew/parse-sed#0.1.0",
     "shelljs": "^0.7.8",
     "tmp": "0.0.31",
     "ts-node": "^2.1.2"
