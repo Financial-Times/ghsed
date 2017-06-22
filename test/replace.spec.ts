@@ -3,6 +3,4 @@
  * Test suites for ghsed replacement mechanisms
  */
 
-describe('lib/replace.ts', () => {
-  
-});
+xdescribe('lib/replace.ts', () => {});

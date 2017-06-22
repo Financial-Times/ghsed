@@ -54,13 +54,13 @@ describe('lib/auth.ts', () => {
     });
   });
 
-  describe('authGitHub()', () => {
+  xdescribe('authGitHub()', () => {
     let GitHubStub: sinon.SinonStub;
     const GitHubTokenEnvVar = process.env.GITHUB_TOKEN;
 
     beforeEach(() => {
       process.env.GITHUB_TOKEN = '<TOKEN>';
-      GitHubStub = sinon.stub(GitHub);
+      GitHubStub = sinon.stub(() => sinon.createStubInstance(GitHub));
     });
 
     afterEach(() => {
@@ -70,7 +70,7 @@ describe('lib/auth.ts', () => {
 
     it('auths using $GITHUB_TOKEN env var', () => {
       const result = authGitHub();
-      GitHubStub.should.be.calledWithNew;
+      GitHubStub.should.have.been.calledOnce;
       result.should.be.a('Github');
     });
 
