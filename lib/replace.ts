@@ -74,9 +74,10 @@ export async function queryMatches(processed: ProcessedResult[], inplace: boolea
         default: branch,
         name: 'branch',
         message: 'What should the PR branch be called?',
+        when: ({confirmRepo}) => confirmRepo === true,
       }]
     ));
-    if (!answers.confirm) return collection; // Bail early if told to skip repo.
+    if (!answers.confirmRepo) return collection; // Bail early if told to skip repo.
 
     branch = answers.branch; // Store result so it's the default next repo
 

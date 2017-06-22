@@ -1,15 +1,17 @@
 {
   "name": "ghsed",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.0.0",
+  "description": "CLI tool for mass find-replacing text strings across many GitHub repos. It's basically napalm for text replacement.",
   "main": "index.js",
   "scripts": {
     "test": "mocha --compilers ts:ts-node/register test/*.spec.ts",
     "tdd": "npm test -- --watch",
-    "cover": "nyc npm test"
+    "cover": "nyc npm test",
+    "report-coverage": "nyc report --reporter=lcov | codecov",
+    "lint": "tslint"
   },
   "keywords": [],
-  "author": "",
+  "author": "Ændrew Rininsland <andrew.rininsland@ft.com",
   "license": "ISC",
   "dependencies": {
     "@types/chalk": "^0.4.31",
@@ -39,7 +41,9 @@
     "@types/sinon": "^2.3.1",
     "@types/sinon-chai": "^2.7.28",
     "chai": "^4.0.2",
+    "codecov": "^2.2.0",
     "mocha": "^3.4.2",
+    "npm-prepublish": "^1.2.2",
     "nyc": "^11.0.2",
     "sinon": "^2.3.4",
     "sinon-chai": "^2.11.0",
