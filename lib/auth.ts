@@ -55,5 +55,5 @@ export interface ConfigObject extends ConfigObjectBase {
 
 interface ConfigObjectBase {
   expr?: string|string[];
-  inplace?: string;
+  inplace?: boolean;
 }
