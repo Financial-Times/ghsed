@@ -7,9 +7,9 @@
     "ghsed": "bin/ghsed.js"
   },
   "scripts": {
-    "test": "tsc --outDir ./.tmp && mocha ./.tmp/**/*.spec.js",
-    "test-tsnode": "mocha --compilers ts:ts-node/register test/*.spec.ts",
-    "cover": "nyc npm test",
+    "test:tsc": "tsc --outDir ./.tmp && mocha ./.tmp/**/*.spec.js",
+    "test:tsnode": "mocha --compilers ts:ts-node/register test/*.spec.ts",
+    "test": "nyc npm run test:tsc",
     "report-coverage": "nyc report --reporter=lcov | codecov",
     "lint": "tslint {lib,test}/**/*.ts"
   },
