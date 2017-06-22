@@ -54,13 +54,14 @@ describe('lib/auth.ts', () => {
     });
   });
 
+  // @TODO figure out how to properly stub a new'd GitHub instance
   xdescribe('authGitHub()', () => {
-    let GitHubStub: sinon.SinonStub;
+    let GitHubStub: any;
     const GitHubTokenEnvVar = process.env.GITHUB_TOKEN;
 
     beforeEach(() => {
       process.env.GITHUB_TOKEN = '<TOKEN>';
-      GitHubStub = sinon.stub(() => sinon.createStubInstance(GitHub));
+      GitHubStub = sinon.stub(GitHub.prototype);
     });
 
     afterEach(() => {
@@ -71,24 +72,31 @@ describe('lib/auth.ts', () => {
     it('auths using $GITHUB_TOKEN env var', () => {
       const result = authGitHub();
       GitHubStub.should.have.been.calledOnce;
+      GitHubStub.should.have.been.calledWith({token: '<TOKEN>'});
       result.should.be.a('Github');
     });
 
     it('auths using GitHub token arg', () => {
       const result = authGitHub({}, '<TOKEN>');
-      GitHubStub.should.be.calledWithNew;
+      GitHubStub.should.have.been.calledOnce;
+      GitHubStub.should.have.been.calledWith({token: '<TOKEN>'});
       result.should.be.a('Github');
     });
 
     it('auths using GitHub token config value', () => {
       const result = authGitHub({token: '<TOKEN>'});
-      GitHubStub.should.be.calledWithNew;
+      GitHubStub.should.have.been.calledOnce;
+      GitHubStub.should.have.been.calledWith({token: '<TOKEN>'});
       result.should.be.a('Github');
     });
 
     it('auths using username/pass config values', () => {
       const result = authGitHub({username: '<USERNAME>', password: '<PASSWORD>'});
-      GitHubStub.should.be.calledWithNew;
+      GitHubStub.should.have.been.calledOnce;
+      GitHubStub.should.have.been.calledWith({
+        username: '<USERNAME>',
+        password: '<PASSWORD>',
+      });
       result.should.be.a('Github');
     });
 

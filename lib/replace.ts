@@ -8,10 +8,12 @@ import * as chalk from 'chalk';
 import {prompt} from 'inquirer';
 import * as diff from 'diff';
 import { Expression as SedExpression } from 'parse-sed';
+import { SinonStub } from 'sinon';
 import GitHub = require('github-api');
 import {
   GHTarget,
 } from './search';
+
 
 export async function processResults(
   results: RepoGroup,
@@ -140,7 +142,7 @@ export async function queryMatches(processed: ProcessedResult[], inplace: boolea
   }, Promise.resolve<Array<any>>([])); // TODO fix typedef
 }
 
-async function createOrGetBranch(branchName: string, repo: GitHub.Repository) {
+export async function createOrGetBranch(branchName: string, repo: GitHub.Repository) {
   try {
     const {data: branch} = await repo.getBranch(branchName);
     return branch;
@@ -154,10 +156,10 @@ async function createOrGetBranch(branchName: string, repo: GitHub.Repository) {
       }
     }
   }
-}
+} // @TODO fix typedef for branch
 
 // @TODO this should probably be broken into a few functions
-async function commitToBranch(item: ReplaceAnswers, gh: GitHub, inPlace: boolean = false) {
+export async function commitToBranch(item: ReplaceAnswers, gh: GitHub, inPlace: boolean = false) {
   try {
     // Bail if trying to commit directly to master branch and not using "in-place" mode
     if (item.branch === 'master' && !inPlace) return;
@@ -200,7 +202,7 @@ async function commitToBranch(item: ReplaceAnswers, gh: GitHub, inPlace: boolean
   }
 }
 
-async function getDefaultBranch(repo: GitHub.Repository) {
+export async function getDefaultBranch(repo: GitHub.Repository) {
   try {
     const {data} = await repo.getDetails();
     return data.default_branch;
@@ -209,7 +211,7 @@ async function getDefaultBranch(repo: GitHub.Repository) {
   }
 }
 
-async function makePullRequest(pr: UpdatedBranch, gh: GitHub) {
+export async function makePullRequest(pr: UpdatedBranch, gh: GitHub) {
   try {
     const {owner, branch} = pr;
     const defaultBranch = await getDefaultBranch(pr.repo);
@@ -227,13 +229,12 @@ async function makePullRequest(pr: UpdatedBranch, gh: GitHub) {
   }
 }
 
-interface UpdatedBranch {
+export interface UpdatedBranch {
   repo: GitHub.Repository;
   owner: string;
   branch: string;
   sha: string;
 }
-
 
 export interface ReplaceAnswers {
   repo: string;
