@@ -1,9 +1,13 @@
 # ghsed
+
 ## CLI tool for mass find-replacing text strings across an entire GitHub user/org
+
 #### 2017 Ændrew Rininsland <@aendrew>
+
 > If sed is like a flamethrower for string replacement, ghsed is firebombing with napalm.
 
 ### Installation & Usage
+
 `ghsed` should be installed globally:
 
 ```bash
@@ -17,10 +21,12 @@ $ ghsed <sed expression> <target>
 ```
 
 ### Options
+
 * `-e`, `--expr` **Expression:** Adds a sed find/replace extension. Can be used multiple times.
 * `-i`, `--inplace` **Inplace:** Normally `ghsed` will create a branch and PR the changes, preventing users from committing directly to `master`. This flag allows committing to master while not opening a PR.
 
 ### Gotchas 'n' Caveats
+
 * **The only real tested support in terms of `sed` commands at present is the `s/` verb.** If you try to do some really crazy-fancy sed scripting, you probably will be disappointed. There's an [open issue](https://github.com/Financial-Times/ghsed/issues/3) to improve this if you care to help!
 
 * **For some crazy reason `parse-sed` requires escaping slashes to be _DOUBLE-SLASHED_** (across the sky! It's so beautiful!). For example, the following was used to replace all old `nextgee-bee` URLs in the @ft-interactive org:
