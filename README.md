@@ -1,8 +1,6 @@
 # ghsed
-
-## CLI tool for mass find-replacing text strings across an entire GitHub user/org
-
-#### 2017 Ændrew Rininsland <@aendrew>
+## CLI tool for mass find-replacing text strings across an entire GitHub user/org
+#### 2017 Ændrew Rininsland <@aendrew>
 
 > If sed is like a flamethrower for string replacement, ghsed is firebombing with napalm.
 
@@ -20,7 +18,7 @@ You can then use it like so:
 $ ghsed <sed expression> <target>
 ```
 
-### Options
+### Options
 
 * `-e`, `--expr` **Expression:** Adds a sed find/replace extension. Can be used multiple times.
 * `-i`, `--inplace` **Inplace:** Normally `ghsed` will create a branch and PR the changes, preventing users from committing directly to `master`. This flag allows committing to master while not opening a PR.
