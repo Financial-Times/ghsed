@@ -21,7 +21,7 @@
     "@types/diff": "^0.0.31",
     "@types/git": "0.0.18",
     "@types/inquirer": "^0.0.34",
-    "@types/lodash": "^4.14.63",
+    "@types/lodash": "^4.14.168",
     "@types/meow": "^3.6.2",
     "@types/shelljs": "^0.7.2",
     "@types/tmp": "0.0.33",
