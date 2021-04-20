@@ -20,7 +20,7 @@
     "@types/chalk": "^0.4.31",
     "@types/diff": "^0.0.31",
     "@types/git": "0.0.18",
-    "@types/inquirer": "^0.0.34",
+    "@types/inquirer": "^0.0.44",
     "@types/lodash": "^4.14.63",
     "@types/meow": "^3.6.2",
     "@types/shelljs": "^0.7.2",
