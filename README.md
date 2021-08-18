@@ -1,3 +1,6 @@
+## Notice: This repo is archived because this tool is a little too powerful and I was never able to manage to get the sed syntax interpreter working very well. Feel free to unarchive if you want to pick it up again but I don't see myself actively contributing to it. -æ.
+
+
 # ghsed
 ## CLI tool for mass find-replacing text strings across an entire GitHub user/org
 #### 2017 Ændrew Rininsland <@aendrew>
